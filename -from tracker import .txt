@@ -1,0 +1,100 @@
+-from tracker import *
+دا معمول علشان يدي رقم مميز لكل اؤبجيكت اقصد اي دي id
+
+import math
+
+
+class Tracker:
+    def __init__(self):
+        # Store the center positions of the objects
+        self.center_points = {}
+        # Keep the count of the IDs
+        # each time a new object id detected, the count will increase by one
+        self.id_count = 0
+
+
+    def update(self, objects_rect):
+        # Objects boxes and ids
+        objects_bbs_ids = []
+
+        # Get center point of new object
+        for rect in objects_rect:
+            x, y, w, h = rect
+            cx = (x + x + w) // 2
+            cy = (y + y + h) // 2
+
+            # Find out if that object was detected already
+            same_object_detected = False
+            for id, pt in self.center_points.items():
+                dist = math.hypot(cx - pt[0], cy - pt[1])
+
+                if dist < 35:
+                    self.center_points[id] = (cx, cy)
+#                    print(self.center_points)
+                    objects_bbs_ids.append([x, y, w, h, id])
+                    same_object_detected = True
+                    break
+
+            # New object is detected we assign the ID to that object
+            if same_object_detected is False:
+                self.center_points[self.id_count] = (cx, cy)
+                objects_bbs_ids.append([x, y, w, h, self.id_count])
+                self.id_count += 1
+
+        # Clean the dictionary by center points to remove IDS not used anymore
+        new_center_points = {}
+        for obj_bb_id in objects_bbs_ids:
+            _, _, _, _, object_id = obj_bb_id
+            center = self.center_points[object_id]
+            new_center_points[object_id] = center
+
+        # Update dictionary with IDs not used removed
+        self.center_points = new_center_points.copy()
+        return objects_bbs_ids
+
+دا الكود بتاعه من جوا 
+
+
+-هو فالكود عامل 2 region of interest
+an ROI might be a particular area of an image where an object of interest is located. Detecting and analyzing this ROI can be more computationally efficient than processing the entire image.
+
+بيحددها عن طريق ال mouse call backs
+
+الماوس علي الفريم بترجعلك الكوردينيتس تاخدها
+
+-تاني حاجه هيعمل ديتكشن لما يعدوا ال roi
+
+-تالت خطوه ازاي هعرف افرق ان الشخص دا داخل ولا خارج علشان كدا عملت 2 roi
+
+الشخص اللي خارج هيعدي من التانيه بعدين الاؤلي اللي داخل العكس
+
+def RGB(event, x, y, flags, param):
+    if event == cv2.EVENT_MOUSEMOVE :  
+        colorsBGR = [x, y]
+        print(colorsBGR)
+
+دا الماوس كول باكس اللي اقدر احدد منه ال roi 
+area1=[(312,388),(289,390),(474,469),(497,462)]
+
+area2=[(279,392),(250,397),(423,477),(454,469)]
+
+بالنسبه لل mouseevents 
+ بكتب الكود دا الليست كومبيرهنشن عايز اجيب كل الدايركتري اللي فالليبراري دي اللي اؤلها events
+
+while cap.isOpened():
+    # Read a frame from the video
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    # Display the frame
+    cv2.imshow('Video', frame)
+    
+    # Exit loop if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release resources
+cap.release()
+cv2.destroyAllWindows()
+to read every frame in video
